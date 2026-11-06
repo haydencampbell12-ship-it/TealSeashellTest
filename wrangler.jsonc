@@ -1,0 +1,63 @@
+{
+  // The Teal Seashell — Cloudflare Worker config (free tier)
+  // Live site:  npm run deploy
+  // Test site:  npm run deploy:staging   (separate database, Stripe test mode, marked as a test site)
+  "name": "teal-seashell",
+  "main": "src/index.js",
+  "compatibility_date": "2025-06-01",
+  "assets": {
+    "directory": "./public",
+    "binding": "ASSETS",
+    "run_worker_first": ["/api/*", "/calendar.ics"]
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "teal-seashell-db",
+      // Replace with the id printed by: npx wrangler d1 create teal-seashell-db
+      "database_id": "REPLACE_WITH_YOUR_D1_DATABASE_ID",
+      "migrations_dir": "migrations"
+    }
+  ],
+  // Re-import Airbnb/VRBO calendars and expire unpaid holds every 30 minutes
+  "triggers": { "crons": ["*/30 * * * *"] },
+  "vars": {
+    "ENVIRONMENT": "production",
+    "SITE_URL": "https://tealseashell.com",
+    "AIRBNB_ICAL_URL": "",
+    "VRBO_ICAL_URL": "",
+    "OWNER_EMAIL": "",
+    "FROM_EMAIL": ""
+  },
+  // Secrets (set with `npx wrangler secret put NAME`, never commit them):
+  //   ADMIN_USERS, SESSION_SECRET, ICAL_TOKEN,
+  //   STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET, RESEND_API_KEY (optional)
+  // For the test site add `--env staging` to each command.
+
+  "env": {
+    "staging": {
+      "name": "tealseashelltest1",
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_name": "teal-seashell-staging-db",
+          // Replace with the id printed by: npx wrangler d1 create teal-seashell-staging-db
+          "database_id": "11507e13-e77c-4669-98e8-b135d404a430",
+          "migrations_dir": "migrations"
+        }
+      ],
+      "triggers": { "crons": ["*/30 * * * *"] },
+      "vars": {
+        "ENVIRONMENT": "staging",
+        // Replace with the address wrangler prints after the first `npm run deploy:staging`
+        "SITE_URL": "https://tealseashelltest1.haydencampbell12.workers.dev",
+        // Reading your real Airbnb/VRBO calendars is safe here: it only imports dates.
+        // Never paste the TEST site's calendar link into Airbnb or VRBO.
+        "AIRBNB_ICAL_URL": "",
+        "VRBO_ICAL_URL": "",
+        "OWNER_EMAIL": "",
+        "FROM_EMAIL": ""
+      }
+    }
+  }
+}

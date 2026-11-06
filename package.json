@@ -1,0 +1,19 @@
+{
+  "name": "teal-seashell",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Direct-booking site for The Teal Seashell, a Gulf-front studio in Panama City Beach",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "db:init:local": "wrangler d1 migrations apply teal-seashell-db --local",
+    "db:init": "wrangler d1 migrations apply teal-seashell-db --remote",
+    "deploy:staging": "wrangler deploy --env staging",
+    "db:init:staging": "wrangler d1 migrations apply teal-seashell-staging-db --remote --env staging",
+    "logs:staging": "wrangler tail --env staging"
+  },
+  "devDependencies": {
+    "wrangler": "^4.20.0"
+  },
+  "type": "module"
+}

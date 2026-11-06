@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>Owner dashboard · The Teal Seashell</title>
+<link rel="icon" href="/img/favicon.png" type="image/png">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT,WONK@9..144,500..700,100,0..1&family=Instrument+Sans:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="/styles.css">
+<link rel="stylesheet" href="/finance.css">
+<style>
+  .admin { padding-block: 24px 64px; display: grid; gap: 28px; }
+  .bar { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .tabs { display: flex; gap: 6px; flex-wrap: wrap; }
+  .tab { font: 600 15px var(--sans); padding: 8px 14px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); cursor: pointer; }
+  .tab[aria-selected="true"] { background: var(--teal); color: var(--on-teal); border-color: var(--teal); }
+  .card { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 18px; display: grid; gap: 10px; min-width: 0; }
+  .list { display: grid; gap: 12px; }
+  .req-top { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; align-items: baseline; }
+  .req-top h3 { font-size: 20px; }
+  .status { font-size: 13px; font-weight: 700; padding: 3px 10px; border-radius: 999px; background: var(--glass); color: var(--teal); }
+  .status.pending { background: var(--shell); color: var(--shell-ink); }
+  .status.confirmed { background: color-mix(in srgb, var(--ok) 16%, transparent); color: var(--ok); }
+  .status.declined, .status.expired, .status.cancelled { background: var(--line); color: var(--muted); }
+  .warn { color: var(--warn); font-weight: 600; font-size: 14px; }
+  .actions { display: flex; gap: 8px; flex-wrap: wrap; }
+  .actions .btn { width: auto; padding: 9px 14px; font-size: 14px; }
+  .kv { display: grid; grid-template-columns: max-content 1fr; gap: 4px 14px; font-size: 15px; }
+  .kv dt { color: var(--muted); } .kv dd { margin: 0; overflow-wrap: anywhere; }
+  .copy-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .copy-row code { background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 6px 8px; font-size: 13px; overflow-wrap: anywhere; flex: 1 1 260px; min-width: 0; }
+  .check { display: flex; gap: 8px; align-items: baseline; }
+  .check b { width: 18px; }
+  table.mini { width: 100%; border-collapse: collapse; font-size: 15px; font-variant-numeric: tabular-nums; }
+  table.mini td, table.mini th { text-align: left; padding: 8px 6px; border-bottom: 1px solid var(--line); }
+  table.mini th { color: var(--muted); font-weight: 600; }
+</style>
+</head>
+<body>
+<header class="top"><div class="wrap"><a class="wordmark" href="/"><picture><source srcset="/img/mark-dark.webp" media="(prefers-color-scheme: dark)"><img src="/img/mark.webp" alt="" width="42" height="34"></picture>The Teal Seashell</a><div style="display:flex;gap:12px;align-items:center"><span class="muted small" id="whoami"></span><button class="btn ghost" type="button" id="logout" hidden>Sign out</button></div></div></header>
+
+<main class="wrap admin">
+  <div id="dash" hidden style="display:grid;gap:22px">
+    <div class="bar">
+      <div class="tabs" role="tablist">
+        <button class="tab" role="tab" data-tab="requests" aria-selected="true">Requests <span id="pendingCount"></span></button>
+        <button class="tab" role="tab" data-tab="finances" aria-selected="false">Finances</button>
+        <button class="tab" role="tab" data-tab="calendar" aria-selected="false">Calendar</button>
+        <button class="tab" role="tab" data-tab="setup" aria-selected="false">Setup</button>
+      </div>
+      <p class="msg success" id="toast" role="status" hidden></p>
+    </div>
+
+    <section data-panel="requests" class="list" id="reqList"></section>
+
+    <section data-panel="finances" hidden id="finPanel">
+      <div class="card"><p class="muted">Loading your forecast…</p></div>
+    </section>
+
+    <section data-panel="calendar" hidden style="display:grid;gap:16px">
+      <div class="card">
+        <div class="req-top"><h3>Calendar sync</h3><button class="btn ghost" type="button" id="syncBtn">Sync Airbnb &amp; VRBO now</button></div>
+        <div id="syncInfo" class="small muted"></div>
+      </div>
+      <form class="card" id="blockForm">
+        <h3>Block dates</h3>
+        <p class="muted small">For personal stays or maintenance. Blocked dates show as booked here and on Airbnb and VRBO.</p>
+        <div class="row2">
+          <div class="field"><label for="bStart">First night</label><input type="date" id="bStart" required></div>
+          <div class="field"><label for="bEnd">Day it opens again</label><input type="date" id="bEnd" required></div>
+        </div>
+        <div class="field"><label for="bNote">Note</label><input id="bNote" placeholder="e.g. Family week"></div>
+        <button class="btn" type="submit" style="width:auto;justify-self:start">Block these dates</button>
+      </form>
+      <div class="card"><h3>Upcoming reservations and blocks</h3><div class="table-wrap"><table class="mini" id="upcoming"><thead><tr><th>From</th><th>To</th><th>Source</th><th></th></tr></thead><tbody></tbody></table></div></div>
+    </section>
+
+    <section data-panel="setup" hidden style="display:grid;gap:16px">
+      <div class="card">
+        <h3>Send your direct bookings to Airbnb and VRBO</h3>
+        <p class="small muted">Paste this link into Airbnb (Calendar → Availability → Connect calendars → Import) and VRBO (Calendar → Import/Export → Import calendar). Keep it private.</p>
+        <div class="copy-row"><code id="exportUrl">Not set up yet: add the ICAL_TOKEN secret.</code><button class="btn ghost" type="button" data-copy="exportUrl">Copy</button></div>
+      </div>
+      <div class="card">
+        <h3>Stripe webhook</h3>
+        <p class="small muted">In Stripe → Developers → Webhooks, add this endpoint with the events checkout.session.completed and checkout.session.expired.</p>
+        <div class="copy-row"><code id="webhookUrl"></code><button class="btn ghost" type="button" data-copy="webhookUrl">Copy</button></div>
+      </div>
+      <div class="card"><h3>Checklist</h3><div id="checklist" style="display:grid;gap:6px"></div></div>
+    </section>
+  </div>
+</main>
+<script src="/admin.js"></script>
+<script src="/finance.js"></script>
+</body>
+</html>

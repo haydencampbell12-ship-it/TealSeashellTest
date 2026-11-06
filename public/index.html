@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>The Teal Seashell · Gulf-front studio in Panama City Beach</title>
+<meta name="description" content="Book The Teal Seashell, a Gulf-front studio at Fontainebleau Terrace in Panama City Beach, directly with the owner. No guest service fees.">
+<link rel="icon" href="/img/favicon.png" type="image/png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT,WONK@9..144,500..700,100,0..1&family=Instrument+Sans:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+<header class="top">
+  <div class="wrap">
+    <a class="wordmark" href="/"><picture><source srcset="/img/mark-dark.webp" media="(prefers-color-scheme: dark)"><img src="/img/mark.webp" alt="" width="42" height="34"></picture>The Teal Seashell</a>
+    <nav aria-label="Page"><a href="#stay">The studio</a><a href="#rates">Rates</a><a href="#faq">Policies</a><a href="#book">Book</a></nav>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="wrap">
+    <h1 class="hero-logo"><picture><source srcset="/img/logo-dark.webp" media="(prefers-color-scheme: dark)"><img src="/img/logo.webp" alt="The Teal Seashell" width="900" height="508"></picture></h1>
+    <p class="sub">A Gulf-front studio at historic Fontainebleau Terrace in Panama City Beach. Book directly with the owner and skip the platform service fees.</p>
+    <div class="facts"><span class="pill">Studio</span><span class="pill">Sleeps up to 3</span><span class="pill">Beachfront pool</span><span class="pill">Full kitchen</span></div>
+  </div>
+</section>
+
+<div class="wrap">
+  <div class="gallery" id="gallery" hidden></div>
+
+  <div class="layout">
+    <div class="content">
+      <section id="stay" aria-labelledby="stayTitle">
+        <h2 id="stayTitle">Steps from the sand</h2>
+        <p>Fontainebleau Terrace sits right on the white sand of Front Beach Road, a short drive from Pier Park and walking distance to restaurants and coffee. The studio is set up for couples, friends or a small family who want to spend their days on the beach and come back to a clean, simple place with a kitchen.</p>
+        <ul class="details">
+          <li><b>Check-in</b><span class="muted" id="ciTime">4:00 PM</span></li>
+          <li><b>Check-out</b><span class="muted" id="coTime">10:00 AM</span></li>
+          <li><b>On site</b><span class="muted">Gulf-front pool, beach access, grills, coin laundry</span></li>
+          <li><b>Parking</b><span class="muted">One rental parking pass per unit</span></li>
+          <li><b>Guests</b><span class="muted" id="maxGuests">Up to 3</span></li>
+          <li><b>Address</b><span class="muted">14401 Front Beach Rd, Panama City Beach, FL</span></li>
+        </ul>
+      </section>
+
+      <section id="rates" aria-labelledby="ratesTitle">
+        <h2 id="ratesTitle">Rates</h2>
+        <div class="table-wrap">
+          <table class="rates" id="ratesTable">
+            <thead><tr><th>Season</th><th>Dates</th><th>Minimum stay</th><th>Per night</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+        <p class="muted small" id="weekendNote"></p>
+        <h3 style="font-size:22px;margin-top:8px">Holidays and school breaks</h3>
+        <div class="table-wrap">
+          <table class="rates" id="holidayTable">
+            <thead><tr><th>Holiday</th><th>Nights</th><th>Minimum stay</th><th>Per night</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+        <p class="muted small" id="ratesNote">Plus a cleaning fee and Florida and Bay County lodging taxes, shown in your quote before you request.</p>
+      </section>
+
+      <section aria-labelledby="directTitle">
+        <div class="direct">
+          <h3 id="directTitle">Why book here instead of Airbnb or VRBO</h3>
+          <p>Same studio, same calendar. Booking directly means no guest service fee, you talk to the owner from the first message, and you pay through Stripe's secure checkout.</p>
+        </div>
+      </section>
+
+      <section id="faq" class="faq" aria-labelledby="faqTitle">
+        <h2 id="faqTitle">How booking works</h2>
+        <details open><summary>What happens after I send a request?</summary><p>The owner checks the dates against every calendar the studio is listed on and replies, usually within a few hours. If the dates are free, you get an email with a secure payment link. Your dates are confirmed once payment goes through.</p></details>
+        <details><summary>Are my dates held while I wait?</summary><p>Not until your request is approved. After approval the dates are held for 23 hours while you pay. If payment isn't completed, the dates are released.</p></details>
+        <details><summary>Why is the calendar sometimes different from Airbnb?</summary><p>Airbnb and VRBO update shared calendars every few hours. That's why every booking here is reviewed by the owner before you pay.</p></details>
+        <details><summary>What's the cancellation policy?</summary><p>Full refund up to 30 days before check-in. Within 30 days, the stay is refundable only if the dates are rebooked.</p></details>
+        <details><summary>Why do some nights cost more?</summary><p>Rates follow the beach season. Summer, spring break and holiday weekends cost more, and Friday and Saturday nights carry a small weekend rate. The calendar shows the price of every night before you pick dates.</p></details>
+        <details><summary>Do you offer monthly stays?</summary><p>Yes. Stays of 28 nights or more starting November through February get the snowbird monthly rate.</p></details>
+      </section>
+    </div>
+
+    <aside class="book" id="book" aria-labelledby="bookTitle">
+      <h2 id="bookTitle">Choose your dates</h2>
+      <div>
+        <div class="cal-head">
+          <button class="icon-btn" type="button" id="prevMonth" aria-label="Previous month">‹</button>
+          <b id="monthLabel" aria-live="polite">—</b>
+          <button class="icon-btn" type="button" id="nextMonth" aria-label="Next month">›</button>
+        </div>
+        <div class="cal" id="cal" role="grid" aria-label="Availability calendar"></div>
+      </div>
+      <div class="legend"><span class="l-sel">Your stay</span><span class="l-booked">Booked</span></div>
+      <div class="picked">
+        <div><small>Check-in</small><b id="pickIn">Add date</b></div>
+        <div><small>Check-out</small><b id="pickOut">Add date</b></div>
+      </div>
+      <p class="msg error" id="calMsg" role="alert" hidden></p>
+
+      <div class="quote" id="quote" hidden></div>
+
+      <form id="reqForm" hidden novalidate>
+        <div style="display:grid;gap:10px">
+          <div class="row2">
+            <div class="field"><label for="guests">Guests</label><select id="guests"></select></div>
+            <div class="field"><label for="name">Name</label><input id="name" autocomplete="name" required></div>
+          </div>
+          <div class="field"><label for="email">Email</label><input id="email" type="email" autocomplete="email" required></div>
+          <div class="field"><label for="phone">Phone (optional)</label><input id="phone" type="tel" autocomplete="tel"></div>
+          <div class="field"><label for="notes">Message to the owner (optional)</label><textarea id="notes" placeholder="Arrival time, questions, what brings you to PCB"></textarea></div>
+          <div class="hp" aria-hidden="true"><label for="website">Website</label><input id="website" tabindex="-1" autocomplete="off"></div>
+          <button class="btn" type="submit" id="sendBtn">Request to book</button>
+          <p class="muted small" style="text-align:center">You won't be charged yet.</p>
+        </div>
+      </form>
+      <p class="msg success" id="sentMsg" role="status" hidden></p>
+      <p class="also" id="also" hidden></p>
+    </aside>
+  </div>
+</div>
+
+<footer><div class="wrap"><span>The Teal Seashell · Fontainebleau Terrace, Panama City Beach, FL</span><span id="contactLine"></span></div></footer>
+<script src="/app.js"></script>
+</body>
+</html>

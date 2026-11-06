@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>Admin sign in · The Teal Seashell</title>
+<link rel="icon" href="/img/favicon.png" type="image/png">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT,WONK@9..144,500..700,100,0..1&family=Instrument+Sans:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="/styles.css">
+<style>
+  .signin { min-height: 100vh; display: grid; place-items: center; padding-block: 32px; }
+  .signin form { width: 100%; max-width: 380px; background: var(--surface); border: 1px solid var(--line); border-radius: 18px; padding: 28px; display: grid; gap: 16px; box-shadow: 0 18px 40px -28px rgba(15, 94, 95, .45); }
+  .signin .head { display: grid; justify-items: start; gap: 10px; }
+  .signin .head img { width: 72px; height: auto; }
+  .signin h1 { font-size: 28px; }
+</style>
+</head>
+<body>
+<main class="wrap signin">
+  <form id="loginForm" novalidate>
+    <div class="head">
+      <picture><source srcset="/img/mark-dark.webp" media="(prefers-color-scheme: dark)"><img src="/img/mark.webp" alt="" width="72" height="58"></picture>
+      <h1>Admin sign in</h1>
+      <p class="muted small">The Teal Seashell owner dashboard</p>
+    </div>
+    <div class="field"><label for="username">Username</label><input id="username" autocomplete="username" autocapitalize="none" spellcheck="false" required></div>
+    <div class="field"><label for="password">Password</label><input id="password" type="password" autocomplete="current-password" required></div>
+    <p class="msg error" id="loginErr" role="alert" hidden></p>
+    <button class="btn" type="submit" id="signInBtn">Sign in</button>
+    <a class="small" href="/">Back to the website</a>
+  </form>
+</main>
+<script>
+(() => {
+  const form = document.getElementById("loginForm");
+  const errEl = document.getElementById("loginErr");
+  const btn = document.getElementById("signInBtn");
+  // Already signed in? Go straight to the dashboard.
+  fetch("/api/admin/me", { credentials: "same-origin" }).then((r) => { if (r.ok) location.replace("/admin.html"); }).catch(() => {});
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    errEl.hidden = true;
+    const username = document.getElementById("username").value.trim();
+    const password = document.getElementById("password").value;
+    if (!password) { errEl.textContent = "Enter your password."; errEl.hidden = false; return; }
+    btn.disabled = true; btn.textContent = "Signing in…";
+    try {
+      const res = await fetch("/api/admin/login", { method: "POST", headers: { "Content-Type": "application/json" }, credentials: "same-origin", body: JSON.stringify({ username, password }) });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || "Sign-in didn't work. Try again.");
+      location.replace("/admin.html");
+    } catch (err) {
+      errEl.textContent = err.message; errEl.hidden = false;
+      btn.disabled = false; btn.textContent = "Sign in";
+    }
+  });
+})();
+</script>
+</body>
+</html>

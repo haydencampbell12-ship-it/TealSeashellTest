@@ -1,0 +1,7 @@
+node_modules/
+.wrangler/
+.dev.vars
+*.log
+
+# Guest names and payouts stay off GitHub
+private/
