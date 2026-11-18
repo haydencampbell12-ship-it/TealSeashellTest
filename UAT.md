@@ -22,7 +22,12 @@ You need Node.js (nodejs.org, LTS) and a free Cloudflare account. Run these in a
    npm run deploy:staging
    ```
    Wrangler prints an address like `https://teal-seashell-staging.yourname.workers.dev`. Put it in `wrangler.jsonc` as the staging `SITE_URL`.
-4. **Add your calendar links (optional).** Paste your Airbnb and VRBO export links into the staging `AIRBNB_ICAL_URL` and `VRBO_ICAL_URL`. The test site only reads these. **Never paste the test site's own calendar link into Airbnb or VRBO.** That would block real dates with test bookings.
+4. **Add your calendar links (optional).** Store your Airbnb and VRBO export links as secrets, not in `wrangler.jsonc` (this repo is public):
+   ```
+   npx wrangler secret put AIRBNB_ICAL_URL --env staging
+   npx wrangler secret put VRBO_ICAL_URL --env staging
+   ```
+   The test site only reads these. **Never paste the test site's own calendar link into Airbnb or VRBO.** That would block real dates with test bookings.
 5. **Add test secrets.** Use different values from your live site.
    ```
    npx wrangler secret put ADMIN_USERS --env staging

@@ -24,13 +24,11 @@
   "vars": {
     "ENVIRONMENT": "production",
     "SITE_URL": "https://tealseashell.com",
-    "AIRBNB_ICAL_URL": "",
-    "VRBO_ICAL_URL": "",
     "OWNER_EMAIL": "",
     "FROM_EMAIL": ""
   },
   // Secrets (set with `npx wrangler secret put NAME`, never commit them):
-  //   ADMIN_USERS, SESSION_SECRET, ICAL_TOKEN,
+  //   ADMIN_USERS, SESSION_SECRET, ICAL_TOKEN, AIRBNB_ICAL_URL, VRBO_ICAL_URL,
   //   STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET, RESEND_API_KEY (optional)
   // For the test site add `--env staging` to each command.
 
@@ -51,10 +49,8 @@
         "ENVIRONMENT": "staging",
         // Replace with the address wrangler prints after the first `npm run deploy:staging`
         "SITE_URL": "https://tealseashelltest1.haydencampbell12.workers.dev",
-        // Reading your real Airbnb/VRBO calendars is safe here: it only imports dates.
-        // Never paste the TEST site's calendar link into Airbnb or VRBO.
-        "AIRBNB_ICAL_URL": "",
-        "VRBO_ICAL_URL": "",
+        // Airbnb/VRBO calendar links are secrets (see below). Reading them here is safe:
+        // the test site only imports dates. Never paste the TEST site's calendar link into Airbnb or VRBO.
         "OWNER_EMAIL": "",
         "FROM_EMAIL": ""
       }

@@ -50,8 +50,6 @@ npm run db:init
 In `wrangler.jsonc`, fill in `vars`:
 
 - `SITE_URL` — your site address, e.g. `https://tealseashell.com` (no slash at the end)
-- `AIRBNB_ICAL_URL` — Airbnb: Calendar → Availability → Connect calendars → Export calendar
-- `VRBO_ICAL_URL` — VRBO: Calendar → Import/Export → Export calendar
 - `OWNER_EMAIL` — where new-request emails go
 - `FROM_EMAIL` — e.g. `The Teal Seashell <bookings@tealseashell.com>` (needs a verified domain in Resend)
 
@@ -66,6 +64,8 @@ npx wrangler secret put ADMIN_USERS
 npx wrangler secret put SESSION_SECRET
 npx wrangler secret put ICAL_TOKEN
 npx wrangler secret put STRIPE_SECRET_KEY
+npx wrangler secret put AIRBNB_ICAL_URL
+npx wrangler secret put VRBO_ICAL_URL
 ```
 
 - `ADMIN_USERS` — each admin as `username:password`, separated by semicolons, on one line:
@@ -74,6 +74,9 @@ npx wrangler secret put STRIPE_SECRET_KEY
   ```
   Use 12+ characters for each password. To add or remove an admin, run the command again with the new list. Removed admins are signed out right away.
 - `SESSION_SECRET` and `ICAL_TOKEN` — any long random text, e.g. from a password generator
+- `AIRBNB_ICAL_URL` — Airbnb: Calendar → Availability → Connect calendars → Export calendar
+- `VRBO_ICAL_URL` — VRBO: Calendar → Import/Export → Export calendar
+  These are secrets, not `vars`, because anyone with the links can read your booking calendars and this repo is public.
 - `STRIPE_SECRET_KEY` — Stripe → Developers → API keys. Start with the `sk_test_...` key to try it out.
 
 ### 5. Deploy
