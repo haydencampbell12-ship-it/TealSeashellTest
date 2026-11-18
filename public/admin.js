@@ -138,8 +138,8 @@
     if (s.calendarExportUrl) $("exportUrl").textContent = s.calendarExportUrl;
     $("webhookUrl").textContent = s.webhookUrl;
     const items = [
-      [s.airbnbFeed, "Airbnb calendar link added (AIRBNB_ICAL_URL)"],
-      [s.vrboFeed, "VRBO calendar link added (VRBO_ICAL_URL)"],
+      [s.airbnbFeed, "Airbnb calendar link added (AIRBNB_ICAL_URL secret)"],
+      [s.vrboFeed, "VRBO calendar link added (VRBO_ICAL_URL secret)"],
       [!!s.calendarExportUrl, "Direct-booking calendar feed ready (ICAL_TOKEN)"],
       [s.stripe && !(s.environment === "staging" && !s.stripeTestMode), s.environment === "staging"
         ? (s.stripeTestMode ? "Stripe connected in test mode (right for the test site)" : s.stripe ? "This test site has a LIVE Stripe key. Replace it with your sk_test_ key so no real cards are charged" : "Stripe not connected (add your sk_test_ key)")
