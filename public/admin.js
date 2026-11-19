@@ -145,11 +145,18 @@
         ? (s.stripeTestMode ? "Stripe connected in test mode (right for the test site)" : s.stripe ? "This test site has a LIVE Stripe key. Replace it with your sk_test_ key so no real cards are charged" : "Stripe not connected (add your sk_test_ key)")
         : (s.stripeTestMode ? "Stripe connected in TEST mode: switch to your live key before taking real bookings" : "Stripe connected (STRIPE_SECRET_KEY)")],
       [s.stripeWebhook, "Stripe webhook secret added (STRIPE_WEBHOOK_SECRET)"],
-      [s.email, "Email notifications on (RESEND_API_KEY, FROM_EMAIL, OWNER_EMAIL)"]
+      [s.email, "Email notifications on (RESEND_API_KEY, FROM_EMAIL, OWNER_EMAIL)"],
+      [s.push, "Push notifications on (NTFY_TOPIC secret)"]
     ];
     const box = $("checklist"); box.innerHTML = "";
     for (const [ok, label] of items) box.append(el("div", { className: "check" }, el("b", { textContent: ok ? "✓" : "○", style: `color:var(${ok ? "--ok" : "--muted"})` }), el("span", { textContent: label })));
   }
+  $("testPush").addEventListener("click", async () => {
+    $("testPush").disabled = true;
+    try { await api("/api/admin/test-push", "POST", {}); toast("Test sent. It should reach your phone in a few seconds."); }
+    catch (e) { toast(e.message, true); }
+    finally { $("testPush").disabled = false; }
+  });
   document.querySelectorAll("[data-copy]").forEach((b) => b.addEventListener("click", () => copy($(b.dataset.copy).textContent)));
   function copy(text) { navigator.clipboard.writeText(text).then(() => toast("Copied."), () => toast("Select the text and copy it manually.", true)); }
 
