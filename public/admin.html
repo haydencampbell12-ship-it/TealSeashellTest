@@ -87,6 +87,11 @@
         <p class="small muted">In Stripe → Developers → Webhooks, add this endpoint with the events checkout.session.completed and checkout.session.expired.</p>
         <div class="copy-row"><code id="webhookUrl"></code><button class="btn ghost" type="button" data-copy="webhookUrl">Copy</button></div>
       </div>
+      <div class="card">
+        <h3>Push notifications</h3>
+        <p class="small muted">Get a push on your phone for every new booking request and payment. Install the free ntfy app (iPhone or Android), tap +, and subscribe to the same topic name you saved as the NTFY_TOPIC secret. Keep the topic name private: anyone who knows it can read the pushes.</p>
+        <div><button class="btn ghost" type="button" id="testPush">Send a test push</button></div>
+      </div>
       <div class="card"><h3>Checklist</h3><div id="checklist" style="display:grid;gap:6px"></div></div>
     </section>
   </div>

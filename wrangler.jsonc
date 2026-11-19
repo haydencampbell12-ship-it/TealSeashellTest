@@ -28,7 +28,7 @@
     "FROM_EMAIL": ""
   },
   // Secrets (set with `npx wrangler secret put NAME`, never commit them):
-  //   ADMIN_USERS, SESSION_SECRET, ICAL_TOKEN, AIRBNB_ICAL_URL, VRBO_ICAL_URL,
+  //   ADMIN_USERS, SESSION_SECRET, ICAL_TOKEN, AIRBNB_ICAL_URL, VRBO_ICAL_URL, NTFY_TOPIC (optional, push notifications),
   //   STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET, RESEND_API_KEY (optional)
   // For the test site add `--env staging` to each command.
 

@@ -5,6 +5,7 @@ import { addDays, eachNight, overlaps, todayLocal, isISODate } from "./dates.js"
 import { isAdmin, adminAccounts, makeSession, clearSession, newId, safeEqual, verifyStripe, hmacHex } from "./crypto.js";
 import { createCheckout, expireCheckout } from "./stripe.js";
 import { sendEmail, money } from "./email.js";
+import { sendPush } from "./notify.js";
 import { buildForecast, saveSettings, saveBookingNote, parseManualStay } from "./finance.js";
 import { parseExpense } from "./expenses.js";
 
@@ -12,6 +13,9 @@ const json = (data, status = 200, headers = {}) =>
   new Response(JSON.stringify(data), { status, headers: { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store", ...headers } });
 const err = (message, status = 400) => json({ error: message }, status);
 const nowISO = () => new Date().toISOString();
+
+// "2026-12-12" -> "Dec 12"
+const shortDate = (d) => new Date(d + "T00:00:00Z").toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: "UTC" });
 
 async function readJSON(request) {
   if (!(request.headers.get("Content-Type") || "").includes("application/json")) return null;
@@ -109,6 +113,11 @@ async function apiCreateRequest(request, env) {
       notes ? `Message: ${notes}` : "",
       `Review it in your dashboard: ${site}/admin.html`
     ].filter(Boolean)),
+    sendPush(env, {
+      title: `New booking request: ${shortDate(quote.checkIn)} – ${shortDate(quote.checkOut)}`,
+      message: `${name} · ${quote.nights} night${quote.nights > 1 ? "s" : ""}, ${quote.guests} guest${quote.guests > 1 ? "s" : ""} · ${money(quote.totalCents)}${notes ? "\n" + notes.slice(0, 300) : ""}\nTap to review and approve.`,
+      tags: ["house_with_garden"], priority: 4
+    }),
     sendEmail(env, email, `We got your request for ${PROPERTY.name}`, [
       `Hi ${name},`,
       `Thanks for your request for ${quote.checkIn} to ${quote.checkOut} (${quote.nights} nights). Your quoted total is ${money(quote.totalCents)}.`,
@@ -153,7 +162,14 @@ async function stripeWebhook(request, env) {
       sendEmail(env, env.OWNER_EMAIL, `${conflict ? "CHECK CALENDAR: " : ""}Paid: ${req.name}, ${req.check_in} to ${req.check_out}`, [
         `${req.name} paid ${money(req.total_cents)} for ${req.check_in} to ${req.check_out}.`,
         conflict ? "Warning: these dates now overlap another booking or block. Check your Airbnb/VRBO calendars right away." : "The dates are now blocked on your direct calendar feed."
-      ])
+      ]),
+      sendPush(env, {
+        title: `${conflict ? "CHECK CALENDAR: " : ""}Paid: ${req.name}, ${shortDate(req.check_in)} – ${shortDate(req.check_out)}`,
+        message: conflict
+          ? `${money(req.total_cents)} received, but these dates now overlap another booking or block. Check your Airbnb and VRBO calendars right away.`
+          : `${money(req.total_cents)} received. The stay is confirmed and blocked on your direct calendar feed.`,
+        tags: [conflict ? "warning" : "moneybag"], priority: conflict ? 5 : 4
+      })
     ]);
   } else if (event.type === "checkout.session.expired" && req.status === "approved") {
     await env.DB.prepare("UPDATE requests SET status = 'expired', updated_at = ? WHERE id = ?").bind(nowISO(), id).run();
@@ -217,6 +233,7 @@ async function adminOverview(env, url, adminUser) {
       stripe: !!env.STRIPE_SECRET_KEY, stripeWebhook: !!env.STRIPE_WEBHOOK_SECRET,
       stripeTestMode: (env.STRIPE_SECRET_KEY || "").startsWith("sk_test_"),
       email: !!(env.RESEND_API_KEY && env.FROM_EMAIL && env.OWNER_EMAIL),
+      push: !!env.NTFY_TOPIC,
       webhookUrl: `${site}/api/stripe/webhook`
     }
   });
@@ -312,6 +329,11 @@ export default {
         if (p === "/api/admin/me" && m === "GET") return json({ user: adminUser });
         if (p === "/api/admin/overview" && m === "GET") return adminOverview(env, url, adminUser);
         if (p === "/api/admin/sync" && m === "POST") return json({ results: await syncFeeds(env) });
+        if (p === "/api/admin/test-push" && m === "POST") {
+          if (!env.NTFY_TOPIC) return err("Add the NTFY_TOPIC secret first.");
+          const r = await sendPush(env, { title: "Test from The Teal Seashell", message: `Push notifications are working. Sent by ${adminUser}.`, tags: ["white_check_mark"] });
+          return r.ok ? json({ ok: true }) : err(`ntfy didn't accept the push${r.status ? " (HTTP " + r.status + ")" : ""}. Try again in a minute.`, 502);
+        }
         if (p === "/api/admin/blocks" && m === "POST") return adminAddBlock(request, env);
         let mm = /^\/api\/admin\/blocks\/([\w-]+)$/.exec(p);
         if (mm && m === "DELETE") { await env.DB.prepare("DELETE FROM blocks WHERE id = ?").bind(mm[1]).run(); return json({ ok: true }); }

@@ -97,6 +97,16 @@ Wrangler prints a `*.workers.dev` address. Open it to see the site.
 
 Sign in at `/login.html` → Setup. Copy the calendar link and import it in Airbnb (Connect calendars → Import calendar) and VRBO (Import calendar).
 
+### Push notifications to your phone (optional)
+
+1. Install the free **ntfy** app (iPhone or Android).
+2. Pick a long, random topic name, like `teal-seashell-` followed by 20 random letters and numbers. Anyone who knows the name can read the pushes, so treat it like a password.
+3. In the app, tap **+** and subscribe to that topic on the default server (ntfy.sh).
+4. Save the same name as a secret: `npx wrangler secret put NTFY_TOPIC`, or in Cloudflare → your Worker → Settings → Variables and Secrets → Add → Secret.
+5. Sign in at `/login.html` → Setup → **Send a test push**.
+
+You get a push for every new booking request and every payment. Tap it to open the dashboard. On the test site, titles start with [TEST]. Use a different topic for the test site and the live site if you want to tell them apart.
+
 ### 8. Use your own domain (optional)
 
 Cloudflare dashboard → Workers & Pages → teal-seashell → Settings → Domains & Routes → Add custom domain. Update `SITE_URL` and redeploy.
