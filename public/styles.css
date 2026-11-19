@@ -63,6 +63,13 @@ p { margin: 0; }
 .gallery a:first-child { grid-row: span 2; }
 .gallery .gallery-more { position: absolute; right: 12px; bottom: 12px; background: var(--surface); color: var(--ink); font-size: 14px; font-weight: 600; padding: 8px 14px; border-radius: 999px; text-decoration: none; box-shadow: 0 2px 10px rgb(0 0 0 / .18); }
 
+/* About */
+.about .lead { font-family: var(--serif); font-size: clamp(20px, 2.2vw, 24px); line-height: 1.35; color: var(--teal); font-variation-settings: "SOFT" 100; }
+.story { margin-top: 8px; background: var(--glass); border-left: 4px solid var(--teal-2); border-radius: 14px; padding: 24px 26px; display: grid; gap: 14px; }
+.story h3 { font-size: clamp(21px, 2.4vw, 26px); color: var(--teal); }
+.story .signoff { font-style: italic; }
+.story .signoff span { font-family: var(--serif); font-style: normal; font-size: 20px; color: var(--teal); }
+
 /* Sub-pages: Photos and Things to do */
 .page-head { padding-block: 24px 28px; display: grid; gap: 10px; }
 .page-head h1 { font-size: clamp(34px, 5vw, 52px); }
