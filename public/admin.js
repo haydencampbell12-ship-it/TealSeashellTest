@@ -151,12 +151,12 @@
     const box = $("checklist"); box.innerHTML = "";
     for (const [ok, label] of items) box.append(el("div", { className: "check" }, el("b", { textContent: ok ? "✓" : "○", style: `color:var(${ok ? "--ok" : "--muted"})` }), el("span", { textContent: label })));
   }
-  $("testPush").addEventListener("click", async () => {
-    $("testPush").disabled = true;
-    try { await api("/api/admin/test-push", "POST", {}); toast("Test sent. It should reach your phone in a few seconds."); }
+  document.querySelectorAll("[data-push]").forEach((btn) => btn.addEventListener("click", async () => {
+    btn.disabled = true;
+    try { await api("/api/admin/test-push", "POST", { kind: btn.dataset.push }); toast(`${btn.textContent} sent. It should reach your phone in a few seconds.`); }
     catch (e) { toast(e.message, true); }
-    finally { $("testPush").disabled = false; }
-  });
+    finally { btn.disabled = false; }
+  }));
   document.querySelectorAll("[data-copy]").forEach((b) => b.addEventListener("click", () => copy($(b.dataset.copy).textContent)));
   function copy(text) { navigator.clipboard.writeText(text).then(() => toast("Copied."), () => toast("Select the text and copy it manually.", true)); }
 
