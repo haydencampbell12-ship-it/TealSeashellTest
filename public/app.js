@@ -74,7 +74,15 @@
 
     if (property.photos && property.photos.length) {
       const g = $("gallery");
-      property.photos.slice(0, 5).forEach((p) => { const img = document.createElement("img"); img.src = p.src; img.alt = p.alt || ""; img.loading = "lazy"; g.appendChild(img); });
+      property.photos.slice(0, 5).forEach((p, i) => {
+        const a = document.createElement("a"); a.href = `/photos#${i + 1}`;
+        const img = document.createElement("img"); img.src = (i === 0 ? p.src : p.thumb) || p.src; img.alt = p.alt || ""; img.loading = i === 0 ? "eager" : "lazy";
+        a.appendChild(img); g.appendChild(a);
+      });
+      if (property.photos.length > 5) {
+        const more = document.createElement("a"); more.className = "gallery-more"; more.href = "/photos";
+        more.textContent = `See all ${property.photos.length} photos`; g.appendChild(more);
+      }
       g.hidden = false;
     }
     const links = [];

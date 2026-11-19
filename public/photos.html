@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Photos · The Teal Seashell, Panama City Beach</title>
+<meta name="description" content="Photos of The Teal Seashell, a Gulf-front studio at Fontainebleau Terrace in Panama City Beach: the studio, kitchenette, beachfront pool and decks.">
+<link rel="icon" href="/img/favicon.png" type="image/png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT,WONK@9..144,500..700,100,0..1&family=Instrument+Sans:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+<header class="top">
+  <div class="wrap">
+    <a class="wordmark" href="/"><picture><source srcset="/img/mark-dark.webp" media="(prefers-color-scheme: dark)"><img src="/img/mark.webp" alt="" width="42" height="34"></picture>The Teal Seashell</a>
+    <nav aria-label="Site"><a href="/#stay">The studio</a><a href="/photos" aria-current="page">Photos</a><a href="/things-to-do">Things to do</a><a href="/#rates">Rates</a><a href="/#book">Book</a></nav>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="page-head">
+    <h1>Photos</h1>
+    <p>The studio, the kitchenette, and the pool and decks right on the sand at Fontainebleau Terrace. Tap any photo to see it full size.</p>
+  </div>
+  <div class="page-body">
+    <div class="photo-grid" id="grid"><p class="muted" id="loading">Loading photos…</p></div>
+    <p><a class="btn" href="/#book" style="display:inline-block;width:auto;text-decoration:none">Check dates and book</a></p>
+  </div>
+</main>
+
+<dialog class="lightbox" id="lb" aria-label="Photo viewer">
+  <div class="lb-inner">
+    <div class="lb-top"><span id="lbCount" aria-live="polite"></span><button class="lb-btn" type="button" id="lbClose">Close ✕</button></div>
+    <figure><img id="lbImg" alt=""></figure>
+    <div>
+      <p class="lb-cap" id="lbCap"></p>
+      <div class="lb-nav" style="margin-top:10px"><button class="lb-btn" type="button" id="lbPrev" aria-label="Previous photo">‹ Previous</button><button class="lb-btn" type="button" id="lbNext" aria-label="Next photo">Next ›</button></div>
+    </div>
+  </div>
+</dialog>
+
+<footer><div class="wrap"><span>The Teal Seashell · Fontainebleau Terrace, Panama City Beach, FL</span></div></footer>
+<script src="/photos.js"></script>
+</body>
+</html>
