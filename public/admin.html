@@ -90,7 +90,13 @@
       <div class="card">
         <h3>Push notifications</h3>
         <p class="small muted">Get a push on your phone for every new booking request and payment. Install the free ntfy app (iPhone or Android), tap +, and subscribe to the same topic name you saved as the NTFY_TOPIC secret. Keep the topic name private: anyone who knows it can read the pushes.</p>
-        <div><button class="btn ghost" type="button" id="testPush">Send a test push</button></div>
+        <p class="small muted">Send yourself a sample to see exactly what each alert looks like. Samples use made-up guest details and don't create a booking.</p>
+        <div style="display:flex;flex-wrap:wrap;gap:8px">
+          <button class="btn ghost" type="button" data-push="basic" style="width:auto">Send a test push</button>
+          <button class="btn ghost" type="button" data-push="request" style="width:auto">Sample: new booking request</button>
+          <button class="btn ghost" type="button" data-push="paid" style="width:auto">Sample: guest paid</button>
+          <button class="btn ghost" type="button" data-push="conflict" style="width:auto">Sample: paid, but dates conflict</button>
+        </div>
       </div>
       <div class="card"><h3>Checklist</h3><div id="checklist" style="display:grid;gap:6px"></div></div>
     </section>
