@@ -15,9 +15,18 @@ export const PROPERTY = {
   vrboUrl: "",
   contactEmail: "",
   contactPhone: "",
-  // Put photos in public/img/photos/ and list them here, e.g.
-  // { src: "/img/photos/balcony.jpg", alt: "Balcony view of the Gulf" }
-  photos: []
+  // Photos live in public/img/photos/ (full size + "-sm" thumbnail, both .webp).
+  // The first five show on the home page; all of them show on /photos.
+  photos: [
+    { src: "/img/photos/studio.webp", thumb: "/img/photos/studio-sm.webp", alt: "The studio: bed, sofa and kitchenette under white beamed ceilings" },
+    { src: "/img/photos/living-kitchen.webp", thumb: "/img/photos/living-kitchen-sm.webp", alt: "Looking from the bed toward the TV, breakfast bar and kitchenette" },
+    { src: "/img/photos/gulf-view.webp", thumb: "/img/photos/gulf-view-sm.webp", alt: "The Gulf framed by the building's vintage breeze-block walls" },
+    { src: "/img/photos/pool.webp", thumb: "/img/photos/pool-sm.webp", alt: "Beachfront pool and sun deck at Fontainebleau Terrace" },
+    { src: "/img/photos/beach-deck.webp", thumb: "/img/photos/beach-deck-sm.webp", alt: "Covered deck right above the sand, looking down the beach" },
+    { src: "/img/photos/covered-deck.webp", thumb: "/img/photos/covered-deck-sm.webp", alt: "Shaded deck with teal Adirondack chairs" },
+    { src: "/img/photos/kitchenette.webp", thumb: "/img/photos/kitchenette-sm.webp", alt: "Kitchenette with two-burner cooktop, coffee maker and cookware" },
+    { src: "/img/photos/kitchen-bath.webp", thumb: "/img/photos/kitchen-bath-sm.webp", alt: "Kitchenette and bathroom vanity" }
+  ]
 };
 
 // Rates are based on other studios at Fontainebleau Terrace (Nov 2026 survey).
