@@ -70,7 +70,7 @@ p { margin: 0; }
 .page-body { padding-bottom: 72px; display: grid; gap: 48px; }
 .photo-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; }
 .photo-grid button { all: unset; cursor: zoom-in; display: grid; gap: 8px; }
-.photo-grid img { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; border-radius: 10px; }
+.photo-grid img { width: 100%; height: auto; aspect-ratio: 4 / 3; object-fit: cover; border-radius: 10px; }
 .photo-grid button:focus-visible img { outline: 3px solid var(--teal-2); outline-offset: 2px; }
 .photo-grid span { font-size: 14px; color: var(--muted); }
 .lightbox { border: 0; padding: 0; background: transparent; max-width: 100vw; max-height: 100vh; width: 100vw; height: 100vh; }
