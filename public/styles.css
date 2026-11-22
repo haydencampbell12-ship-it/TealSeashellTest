@@ -132,6 +132,7 @@ p { margin: 0; }
 .faq details { border-bottom: 1px solid var(--line); padding-block: 14px; }
 .faq summary { cursor: pointer; font-weight: 600; }
 .faq details p { margin-top: 8px; color: var(--muted); }
+.checkout-list { margin: 8px 0 0; padding-left: 22px; color: var(--muted); display: grid; gap: 6px; }
 
 /* Booking widget */
 .book { position: sticky; top: 20px; background: var(--surface); border: 1px solid var(--line); border-radius: 18px; padding: 22px; display: grid; gap: 16px; box-shadow: 0 18px 40px -28px rgba(29, 63, 67, .45); }
