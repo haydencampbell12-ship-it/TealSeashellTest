@@ -85,6 +85,12 @@
       }
       g.hidden = false;
     }
+    if (property.checkoutSteps && property.checkoutSteps.length) {
+      const ol = $("checkoutList"); ol.innerHTML = "";
+      property.checkoutSteps.forEach((t) => ol.appendChild(Object.assign(document.createElement("li"), { textContent: t })));
+      $("coTime2").textContent = property.checkOutTime;
+    } else $("checkout").hidden = true;
+    if (location.hash === "#checkout") { $("checkout").open = true; $("checkout").scrollIntoView(); }
     const links = [];
     if (property.airbnbUrl) links.push(`<a href="${encodeURI(property.airbnbUrl)}" target="_blank" rel="noopener">Airbnb</a>`);
     if (property.vrboUrl) links.push(`<a href="${encodeURI(property.vrboUrl)}" target="_blank" rel="noopener">VRBO</a>`);

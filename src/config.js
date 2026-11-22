@@ -15,6 +15,14 @@ export const PROPERTY = {
   vrboUrl: "",
   contactEmail: "",
   contactPhone: "",
+  // Check-out checklist. Shown on the website and reused in guest messages.
+  checkoutSteps: [
+    "Wash any dirty dishes with the provided dish soap and leave them in the sink.",
+    "Put used towels and washcloths in the tub.",
+    "Leave the wristbands on the counter. There is a $25 charge for each missing band.",
+    "Set the heat/AC to 65° and turn off the lights.",
+    "The door locks automatically behind you. Your door code stops working at 10:00 AM (check-out time)."
+  ],
   // Photos live in public/img/photos/ (full size + "-sm" thumbnail, both .webp).
   // The first five show on the home page; all of them show on /photos.
   photos: [
