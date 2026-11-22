@@ -19,8 +19,10 @@ export const PROPERTY = {
   checkoutSteps: [
     "Wash any dirty dishes with the provided dish soap and leave them in the sink.",
     "Put used towels and washcloths in the tub.",
+    "Empty all of your items from the fridge.",
+    "Take the trash to the dumpster.",
     "Leave the wristbands on the counter. There is a $25 charge for each missing band.",
-    "Set the heat/AC to 65° and turn off the lights.",
+    "Set the thermostat to 74° and turn off the lights.",
     "The door locks automatically behind you. Your door code stops working at 10:00 AM (check-out time)."
   ],
   // Photos live in public/img/photos/ (full size + "-sm" thumbnail, both .webp).
