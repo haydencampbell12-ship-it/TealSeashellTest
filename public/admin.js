@@ -36,7 +36,7 @@
       document.body.prepend(b);
     }
     $("whoami").textContent = data.user ? `Signed in as ${data.user}` : "";
-    renderRequests(); renderCalendar(); renderSetup();
+    renderRequests(); renderCalendar(); renderSetup(); if (!arrivalLoaded) loadArrival();
   }
 
   // ---- requests ----
@@ -87,6 +87,15 @@
       if (r.status === "pending") { btn("Approve and send payment link", "approve"); btn("Mark paid", "confirm", true, "Tap again to mark paid"); btn("Decline", "decline", true, "Tap again to decline"); }
       if (r.status === "expired") { btn("Approve again", "approve"); }
       if (r.status === "approved") { btn("Mark paid", "confirm", true, "Tap again to mark paid"); btn("Cancel", "cancel", true, "Tap again to cancel"); }
+      if (r.status === "confirmed" && r.check_out >= data.today) {
+        const b = el("button", { className: "btn ghost", type: "button", textContent: "Copy check-in message" });
+        b.addEventListener("click", async () => {
+          try { const m = await api("/api/admin/arrival/preview", "POST", { id: r.id }); copy(`Subject: ${m.subject}\n\n${m.text}`); }
+          catch (e) { toast(e.message, true); }
+        });
+        acts.append(b);
+        if (r.arrival_sent_at) card.append(el("p", { className: "small muted", textContent: `Check-in message emailed ${new Date(r.arrival_sent_at).toLocaleString()}.` }));
+      }
       if (r.status === "confirmed") { btn("Cancel booking", "cancel", true, "Tap again to cancel"); }
       if (acts.children.length) card.append(acts);
       list.append(card);
@@ -151,6 +160,30 @@
     const box = $("checklist"); box.innerHTML = "";
     for (const [ok, label] of items) box.append(el("div", { className: "check" }, el("b", { textContent: ok ? "✓" : "○", style: `color:var(${ok ? "--ok" : "--muted"})` }), el("span", { textContent: label })));
   }
+  // ---- check-in message ----
+  let arrivalLoaded = false;
+  async function loadArrival() {
+    try {
+      const a = await api("/api/admin/arrival");
+      $("arrivalText").value = a.template; $("arrivalEnabled").checked = a.enabled;
+      $("arrivalHelp").textContent = "Filled in for each guest: " + Object.entries(a.placeholders).map(([k, v]) => `${k} (${v})`).join(", ") + ". Replace every [BRACKETED] code before turning on automatic sending.";
+      $("arrivalStatus").textContent = !a.enabled ? "Automatic sending is off." : a.emailReady ? "On: guests are emailed the day before check-in, and you get a push when each one goes out." : "On, but email isn't set up yet. Until it is, you'll get a push the day before each arrival reminding you to copy the message from the booking.";
+      arrivalLoaded = true;
+    } catch (e) { $("arrivalStatus").textContent = e.message; }
+  }
+  $("arrivalSave").addEventListener("click", async () => {
+    $("arrivalSave").disabled = true;
+    try { await api("/api/admin/arrival", "POST", { template: $("arrivalText").value, enabled: $("arrivalEnabled").checked }); toast("Check-in message saved."); loadArrival(); }
+    catch (e) { toast(e.message, true); }
+    finally { $("arrivalSave").disabled = false; }
+  });
+  $("arrivalPreview").addEventListener("click", async () => {
+    try {
+      const m = await api("/api/admin/arrival/preview", "POST", { template: $("arrivalText").value });
+      $("arrivalSubject").textContent = "Subject: " + m.subject; $("arrivalBody").textContent = m.text; $("arrivalOut").hidden = false;
+    } catch (e) { toast(e.message, true); }
+  });
+
   document.querySelectorAll("[data-push]").forEach((btn) => btn.addEventListener("click", async () => {
     btn.disabled = true;
     try { await api("/api/admin/test-push", "POST", { kind: btn.dataset.push }); toast(`${btn.textContent} sent. It should reach your phone in a few seconds.`); }

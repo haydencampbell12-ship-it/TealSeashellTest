@@ -98,6 +98,22 @@
           <button class="btn ghost" type="button" data-push="conflict" style="width:auto">Sample: paid, but dates conflict</button>
         </div>
       </div>
+      <div class="card" id="arrivalCard">
+        <h3>Check-in message</h3>
+        <p class="small muted">Sent to direct-booking guests the day before check-in (from 9 AM Central), with their name and dates filled in. It's stored privately in your site's database, never on GitHub, so it's safe to include your door, gate and Wi-Fi codes. Airbnb and VRBO guests don't get it from here: use each platform's own scheduled messages for them.</p>
+        <p class="small" id="arrivalStatus"></p>
+        <label style="display:flex;gap:10px;align-items:center;font-weight:600"><input type="checkbox" id="arrivalEnabled" style="width:auto"> Send automatically the day before check-in</label>
+        <div class="field"><label for="arrivalText">Message</label><textarea id="arrivalText" rows="18" spellcheck="true"></textarea></div>
+        <p class="small muted" id="arrivalHelp"></p>
+        <div style="display:flex;flex-wrap:wrap;gap:8px">
+          <button class="btn" type="button" id="arrivalSave" style="width:auto">Save message</button>
+          <button class="btn ghost" type="button" id="arrivalPreview" style="width:auto">Preview with a sample guest</button>
+        </div>
+        <div id="arrivalOut" hidden style="display:grid;gap:6px">
+          <b id="arrivalSubject"></b>
+          <div id="arrivalBody" style="white-space:pre-wrap;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:14px;font-size:15px;max-height:420px;overflow:auto"></div>
+        </div>
+      </div>
       <div class="card"><h3>Checklist</h3><div id="checklist" style="display:grid;gap:6px"></div></div>
     </section>
   </div>
