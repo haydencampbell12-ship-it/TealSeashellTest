@@ -23,7 +23,7 @@ The elevator is located in the hallway off of the drive-through area under the b
 
 There is welcome and informational signage on the refrigerator in the unit, as well as important beach safety information on the back of the entry door. Please take a few moments once you're settled to read through the info on the back of the door.
 
-Door code to Unit 219: [DOOR CODE] ✅
+Door code to Unit 219: {door_code} ✅
 Enter the door code, then touch the check button in the bottom right-hand corner. To lock the door, press and hold the check button for several seconds. The door will auto-lock after 1 minute if not locked manually, but please make sure the door is fully closed so the lock does not jam.
 
 Gate code: [GATE CODE] - This code opens the pool, the ground-floor covered terrace, the beach access gate and the ground-level bathroom.
@@ -46,6 +46,7 @@ export const PLACEHOLDERS = {
   "{check_out_date}": "e.g. Friday, November 6th",
   "{check_out_time}": `Check-out time (${PROPERTY.checkOutTime})`,
   "{nights}": "Number of nights",
+  "{door_code}": "This guest's unit door code, entered on their booking",
   "{checkout_steps}": "Your check-out checklist, numbered"
 };
 
@@ -67,6 +68,7 @@ export function render(template, booking) {
     "{check_out_date}": longDate(booking.check_out),
     "{check_out_time}": PROPERTY.checkOutTime.replace(":00", "").replace(" ", "").toLowerCase(), // "10am"
     "{nights}": String(booking.nights),
+    "{door_code}": booking.door_code || "[DOOR CODE]",
     "{checkout_steps}": (PROPERTY.checkoutSteps || []).map((s, i) => `${i + 1}. ${s}`).join("\n")
   };
   let text = template;
@@ -90,6 +92,19 @@ export async function saveArrival(env, body) {
   return { ok: true, settings: { enabled, template, customized: true } };
 }
 
+export const needsDoorCode = (template) => template.includes("{door_code}");
+export async function getDoorCode(env, id) {
+  const row = await env.DB.prepare("SELECT value FROM meta WHERE key = ?").bind(`door_code:${id}`).first();
+  return row ? row.value : "";
+}
+export async function saveDoorCode(env, id, code) {
+  code = String(code ?? "").trim();
+  if (code && !/^[0-9A-Za-z#*\- ]{3,20}$/.test(code)) return { ok: false, error: "Door codes can be 3 to 20 letters or numbers." };
+  if (code) await env.DB.prepare("INSERT OR REPLACE INTO meta (key, value) VALUES (?, ?)").bind(`door_code:${id}`, code).run();
+  else await env.DB.prepare("DELETE FROM meta WHERE key = ?").bind(`door_code:${id}`).run();
+  return { ok: true, code };
+}
+
 export const emailReady = (env) => !!(env.RESEND_API_KEY && env.FROM_EMAIL);
 
 // Hour of the day in Panama City Beach
@@ -109,6 +124,17 @@ export async function sendArrivalMessages(env) {
   for (const r of due.results) {
     const sentKey = `arrival_sent:${r.id}`, nudgeKey = `arrival_nudge:${r.id}`;
     if (await env.DB.prepare("SELECT 1 FROM meta WHERE key = ?").bind(sentKey).first()) continue;
+    r.door_code = await getDoorCode(env, r.id);
+    if (needsDoorCode(settings.template) && !r.door_code) {
+      // Don't send a message with a blank code. Remind the owner once, then send as soon as the code is added.
+      const codeKey = `arrival_code_nudge:${r.id}`;
+      if (!(await env.DB.prepare("SELECT 1 FROM meta WHERE key = ?").bind(codeKey).first())) {
+        await env.DB.prepare("INSERT OR REPLACE INTO meta (key, value) VALUES (?, ?)").bind(codeKey, new Date().toISOString()).run();
+        await sendPush(env, { title: `Add a door code: ${r.name}`, message: `${r.name} arrives ${shortDate(r.check_in)}. Add their unit door code on the booking in your dashboard and the check-in message will go out right after.`, tags: ["key"], priority: 4, path: "/admin.html" });
+      }
+      results.push({ id: r.id, waitingForCode: true });
+      continue;
+    }
     const msg = render(settings.template, r);
     if (emailReady(env)) {
       const out = await sendEmail(env, r.email, msg.subject, msg.text.split(/\n{2,}/), { replyTo: env.OWNER_EMAIL });
