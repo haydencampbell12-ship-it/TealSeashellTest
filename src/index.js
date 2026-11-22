@@ -6,7 +6,7 @@ import { isAdmin, adminAccounts, makeSession, clearSession, newId, safeEqual, ve
 import { createCheckout, expireCheckout } from "./stripe.js";
 import { sendEmail, money } from "./email.js";
 import { sendPush, shortDate, requestPush, paidPush } from "./notify.js";
-import { getArrival, saveArrival, render as renderArrival, sendArrivalMessages, emailReady, PLACEHOLDERS } from "./arrival.js";
+import { getArrival, saveArrival, render as renderArrival, sendArrivalMessages, emailReady, PLACEHOLDERS, getDoorCode, saveDoorCode, needsDoorCode } from "./arrival.js";
 import { buildForecast, saveSettings, saveBookingNote, parseManualStay } from "./finance.js";
 import { parseExpense } from "./expenses.js";
 
@@ -197,7 +197,7 @@ async function adminOverview(env, url, adminUser) {
     env.DB.prepare("SELECT * FROM blocks WHERE end_date >= ? ORDER BY start_date").bind(today).all(),
     env.DB.prepare("SELECT source, start_date, end_date, summary FROM ext_events WHERE end_date >= ? ORDER BY start_date LIMIT 300").bind(today).all(),
     env.DB.prepare("SELECT value FROM meta WHERE key = 'last_sync'").first(),
-    env.DB.prepare("SELECT key, value FROM meta WHERE key LIKE 'arrival_sent:%'").all()
+    env.DB.prepare("SELECT key, value FROM meta WHERE key LIKE 'arrival_sent:%' OR key LIKE 'door_code:%'").all()
   ]);
   const extList = ext.results;
   const requests = reqs.results.map((r) => ({
@@ -205,6 +205,7 @@ async function adminOverview(env, url, adminUser) {
     quote: JSON.parse(r.quote_json),
     quote_json: undefined,
     arrival_sent_at: (arrivals.results.find((a) => a.key === `arrival_sent:${r.id}`) || {}).value || null,
+    door_code: (arrivals.results.find((a) => a.key === `door_code:${r.id}`) || {}).value || "",
     // flag direct bookings that collide with an Airbnb/VRBO reservation or a block
     conflict: (r.status === "confirmed" || r.status === "approved" || r.status === "pending") &&
       (extList.some((e) => overlaps(r.check_in, r.check_out, e.start_date, e.end_date)) ||
@@ -329,9 +330,12 @@ export default {
           const body = (await readJSON(request)) || {};
           const template = body.template || (await getArrival(env)).template;
           let booking;
-          if (body.id) booking = await env.DB.prepare("SELECT * FROM requests WHERE id = ?").bind(String(body.id)).first();
+          if (body.id) {
+            booking = await env.DB.prepare("SELECT * FROM requests WHERE id = ?").bind(String(body.id)).first();
+            if (booking) booking.door_code = await getDoorCode(env, booking.id);
+          }
           if (!booking) { const ci = addDays(todayLocal(), 1); booking = { name: "Sample Guest", check_in: ci, check_out: addDays(ci, 4), nights: 4 }; }
-          return json(renderArrival(template, booking));
+          return json({ ...renderArrival(template, booking), missingDoorCode: needsDoorCode(template) && !booking.door_code });
         }
         if (p === "/api/admin/test-push" && m === "POST") {
           if (!env.NTFY_TOPIC) return err("Add the NTFY_TOPIC secret first.");
@@ -381,6 +385,11 @@ export default {
         }
         mm = /^\/api\/admin\/expenses\/([\w-]+)$/.exec(p);
         if (mm && m === "DELETE") { await env.DB.prepare("DELETE FROM expenses WHERE id = ?").bind(mm[1]).run(); return json({ ok: true }); }
+        mm = /^\/api\/admin\/requests\/([\w-]+)\/door-code$/.exec(p);
+        if (mm && m === "POST") {
+          const r = await saveDoorCode(env, mm[1], ((await readJSON(request)) || {}).code);
+          return r.ok ? json(r) : err(r.error);
+        }
         mm = /^\/api\/admin\/requests\/([\w-]+)\/(approve|decline|confirm|cancel)$/.exec(p);
         if (mm && m === "POST") return adminRequestAction(request, env, mm[1], mm[2]);
       }

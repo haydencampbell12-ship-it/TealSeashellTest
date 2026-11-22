@@ -88,10 +88,25 @@
       if (r.status === "expired") { btn("Approve again", "approve"); }
       if (r.status === "approved") { btn("Mark paid", "confirm", true, "Tap again to mark paid"); btn("Cancel", "cancel", true, "Tap again to cancel"); }
       if (r.status === "confirmed" && r.check_out >= data.today) {
+        // This guest's unit door code, used for {door_code} in the check-in message
+        const codeIn = el("input", { type: "text", value: r.door_code || "", placeholder: "e.g. 0234", maxLength: 20, autocomplete: "off", style: "max-width:140px" });
+        const codeSave = el("button", { className: "btn ghost", type: "button", textContent: "Save code", style: "width:auto" });
+        codeSave.addEventListener("click", async () => {
+          codeSave.disabled = true;
+          try { await api(`/api/admin/requests/${r.id}/door-code`, "POST", { code: codeIn.value }); r.door_code = codeIn.value.trim(); toast(r.door_code ? "Door code saved." : "Door code removed."); }
+          catch (e) { toast(e.message, true); }
+          finally { codeSave.disabled = false; }
+        });
+        card.append(el("div", { className: "field", style: "margin-top:8px" },
+          el("label", { textContent: "Unit door code for this stay" }),
+          el("div", { style: "display:flex;gap:8px;align-items:center" }, codeIn, codeSave)));
         const b = el("button", { className: "btn ghost", type: "button", textContent: "Copy check-in message" });
         b.addEventListener("click", async () => {
-          try { const m = await api("/api/admin/arrival/preview", "POST", { id: r.id }); copy(`Subject: ${m.subject}\n\n${m.text}`); }
-          catch (e) { toast(e.message, true); }
+          try {
+            const m = await api("/api/admin/arrival/preview", "POST", { id: r.id });
+            copy(`Subject: ${m.subject}\n\n${m.text}`);
+            if (m.missingDoorCode) setTimeout(() => toast("Copied, but this booking has no door code yet. Save one first, or fill in [DOOR CODE] by hand.", true), 1500);
+          } catch (e) { toast(e.message, true); }
         });
         acts.append(b);
         if (r.arrival_sent_at) card.append(el("p", { className: "small muted", textContent: `Check-in message emailed ${new Date(r.arrival_sent_at).toLocaleString()}.` }));
@@ -166,7 +181,7 @@
     try {
       const a = await api("/api/admin/arrival");
       $("arrivalText").value = a.template; $("arrivalEnabled").checked = a.enabled;
-      $("arrivalHelp").textContent = "Filled in for each guest: " + Object.entries(a.placeholders).map(([k, v]) => `${k} (${v})`).join(", ") + ". Replace every [BRACKETED] code before turning on automatic sending.";
+      $("arrivalHelp").textContent = "Filled in for each guest: " + Object.entries(a.placeholders).map(([k, v]) => `${k} (${v})`).join(", ") + ". Replace every [BRACKETED] code before turning on automatic sending. Put {door_code} where the unit code goes, and enter each guest's code on their booking. A message won't send until its booking has a code." + (a.template.includes("{door_code}") ? "" : " Your message doesn't include {door_code} yet.");
       $("arrivalStatus").textContent = !a.enabled ? "Automatic sending is off." : a.emailReady ? "On: guests are emailed the day before check-in, and you get a push when each one goes out." : "On, but email isn't set up yet. Until it is, you'll get a push the day before each arrival reminding you to copy the message from the booking.";
       arrivalLoaded = true;
     } catch (e) { $("arrivalStatus").textContent = e.message; }
