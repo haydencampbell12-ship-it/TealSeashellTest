@@ -6,6 +6,7 @@ import { isAdmin, adminAccounts, makeSession, clearSession, newId, safeEqual, ve
 import { createCheckout, expireCheckout } from "./stripe.js";
 import { sendEmail, money } from "./email.js";
 import { sendPush, shortDate, requestPush, paidPush } from "./notify.js";
+import { getArrival, saveArrival, render as renderArrival, sendArrivalMessages, emailReady, PLACEHOLDERS } from "./arrival.js";
 import { buildForecast, saveSettings, saveBookingNote, parseManualStay } from "./finance.js";
 import { parseExpense } from "./expenses.js";
 
@@ -191,17 +192,19 @@ async function adminLogin(request, env) {
 
 async function adminOverview(env, url, adminUser) {
   const today = todayLocal();
-  const [reqs, blocks, ext, sync] = await Promise.all([
+  const [reqs, blocks, ext, sync, arrivals] = await Promise.all([
     env.DB.prepare("SELECT * FROM requests WHERE status IN ('pending','approved') OR check_out >= ? ORDER BY CASE status WHEN 'pending' THEN 0 WHEN 'approved' THEN 1 ELSE 2 END, check_in LIMIT 300").bind(addDays(today, -30)).all(),
     env.DB.prepare("SELECT * FROM blocks WHERE end_date >= ? ORDER BY start_date").bind(today).all(),
     env.DB.prepare("SELECT source, start_date, end_date, summary FROM ext_events WHERE end_date >= ? ORDER BY start_date LIMIT 300").bind(today).all(),
-    env.DB.prepare("SELECT value FROM meta WHERE key = 'last_sync'").first()
+    env.DB.prepare("SELECT value FROM meta WHERE key = 'last_sync'").first(),
+    env.DB.prepare("SELECT key, value FROM meta WHERE key LIKE 'arrival_sent:%'").all()
   ]);
   const extList = ext.results;
   const requests = reqs.results.map((r) => ({
     ...r,
     quote: JSON.parse(r.quote_json),
     quote_json: undefined,
+    arrival_sent_at: (arrivals.results.find((a) => a.key === `arrival_sent:${r.id}`) || {}).value || null,
     // flag direct bookings that collide with an Airbnb/VRBO reservation or a block
     conflict: (r.status === "confirmed" || r.status === "approved" || r.status === "pending") &&
       (extList.some((e) => overlaps(r.check_in, r.check_out, e.start_date, e.end_date)) ||
@@ -221,6 +224,7 @@ async function adminOverview(env, url, adminUser) {
       stripeTestMode: (env.STRIPE_SECRET_KEY || "").startsWith("sk_test_"),
       email: !!(env.RESEND_API_KEY && env.FROM_EMAIL && env.OWNER_EMAIL),
       push: !!env.NTFY_TOPIC,
+      emailForArrival: emailReady(env),
       webhookUrl: `${site}/api/stripe/webhook`
     }
   });
@@ -316,6 +320,19 @@ export default {
         if (p === "/api/admin/me" && m === "GET") return json({ user: adminUser });
         if (p === "/api/admin/overview" && m === "GET") return adminOverview(env, url, adminUser);
         if (p === "/api/admin/sync" && m === "POST") return json({ results: await syncFeeds(env) });
+        if (p === "/api/admin/arrival" && m === "GET") return json({ ...(await getArrival(env)), placeholders: PLACEHOLDERS, emailReady: emailReady(env) });
+        if (p === "/api/admin/arrival" && m === "POST") {
+          const r = await saveArrival(env, await readJSON(request));
+          return r.ok ? json(r) : err(r.error);
+        }
+        if (p === "/api/admin/arrival/preview" && m === "POST") {
+          const body = (await readJSON(request)) || {};
+          const template = body.template || (await getArrival(env)).template;
+          let booking;
+          if (body.id) booking = await env.DB.prepare("SELECT * FROM requests WHERE id = ?").bind(String(body.id)).first();
+          if (!booking) { const ci = addDays(todayLocal(), 1); booking = { name: "Sample Guest", check_in: ci, check_out: addDays(ci, 4), nights: 4 }; }
+          return json(renderArrival(template, booking));
+        }
         if (p === "/api/admin/test-push" && m === "POST") {
           if (!env.NTFY_TOPIC) return err("Add the NTFY_TOPIC secret first.");
           const kind = ((await readJSON(request)) || {}).kind || "basic";
@@ -383,6 +400,7 @@ export default {
   async scheduled(event, env, ctx) {
     ctx.waitUntil((async () => {
       await syncFeeds(env);
+      await sendArrivalMessages(env).catch((e) => console.error("arrival messages", e));
       // release dates from approved requests that were never paid
       await env.DB.prepare("UPDATE requests SET status = 'expired', updated_at = ? WHERE status = 'approved' AND hold_expires_at < ?")
         .bind(nowISO(), nowISO()).run();
