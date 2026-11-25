@@ -143,7 +143,7 @@ async function stripeWebhook(request, env) {
   const req = await env.DB.prepare("SELECT * FROM requests WHERE id = ?").bind(id).first();
   if (!req) return json({ received: true });
 
-  if (event.type === "checkout.session.completed" && session.payment_status === "paid" && req.status !== "confirmed") {
+  if ((event.type === "checkout.session.completed" || event.type === "checkout.session.async_payment_succeeded") && session.payment_status === "paid" && req.status !== "confirmed") {
     await env.DB.prepare("UPDATE requests SET status = 'confirmed', updated_at = ? WHERE id = ?").bind(nowISO(), id).run();
     const conflict = !(await isAvailable(env, req.check_in, req.check_out, { excludeRequestId: id }));
     await Promise.all([
