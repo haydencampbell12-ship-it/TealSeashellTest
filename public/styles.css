@@ -206,3 +206,11 @@ footer .wrap { padding-block: 26px; display: flex; justify-content: space-betwee
 
 /* Shown only on the test (staging) site */
 .test-banner { background: var(--shell); color: var(--shell-ink); font-size: 14px; font-weight: 600; text-align: center; padding: 8px max(16px, env(safe-area-inset-left, 0px)); }
+
+/* House rules, terms and privacy pages */
+.legal .page-body { display: block; max-width: 760px; }
+.legal .page-body h2 { margin: 32px 0 10px; }
+.legal .page-body ul { margin: 0 0 16px; padding-left: 22px; }
+.legal .page-body li { margin: 8px 0; line-height: 1.55; }
+.legal .page-body p { line-height: 1.6; }
+footer .wrap { flex-wrap: wrap; row-gap: 6px; }
