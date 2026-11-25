@@ -95,8 +95,10 @@
     if (property.airbnbUrl) links.push(`<a href="${encodeURI(property.airbnbUrl)}" target="_blank" rel="noopener">Airbnb</a>`);
     if (property.vrboUrl) links.push(`<a href="${encodeURI(property.vrboUrl)}" target="_blank" rel="noopener">VRBO</a>`);
     if (links.length) { $("also").innerHTML = `Also listed on ${links.join(" and ")}.`; $("also").hidden = false; }
-    const contact = [property.contactEmail, property.contactPhone].filter(Boolean).join(" · ");
-    $("contactLine").textContent = contact;
+    const cl = $("contactLine"); cl.textContent = "";
+    if (property.contactEmail) cl.append(Object.assign(document.createElement("a"), { href: "mailto:" + property.contactEmail, textContent: property.contactEmail }));
+    if (property.contactPhone) cl.append(document.createTextNode((property.contactEmail ? " · " : "") + property.contactPhone));
+    if (pricing.damageHold) document.querySelectorAll('[data-fill="hold"]').forEach((e) => (e.textContent = "$" + pricing.damageHold.amount));
   }
 
   // ---- calendar ----

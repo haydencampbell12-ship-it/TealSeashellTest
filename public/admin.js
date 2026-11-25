@@ -62,7 +62,19 @@
       add("Total", `${money(r.total_cents)} for ${r.nights} nights`);
       add("Message", r.notes);
       add("Requested", new Date(r.created_at).toLocaleString());
-      if (r.status === "approved" && r.hold_expires_at) add("Hold ends", new Date(r.hold_expires_at).toLocaleString());
+      if (r.status === "approved" && r.hold_expires_at) add("Dates held until", new Date(r.hold_expires_at).toLocaleString());
+      if (r.terms_accepted_at) add("Agreed to terms", new Date(r.terms_accepted_at).toLocaleString());
+      if (r.status === "confirmed" || r.hold_status) {
+        const dh = data.setup.damageHold || { amount: 250 };
+        const holdText = {
+          held: `${money(r.hold_cents)} on hold. Releases automatically ${dh.releaseDaysAfterCheckout} days after check-out.`,
+          released: "Released.",
+          charged: `Charged ${money(r.hold_charged_cents || 0)}${r.hold_note ? " for " + r.hold_note : ""}. The rest was released.`,
+          failed: `Couldn't place the hold${r.hold_note ? ": " + r.hold_note : ""}.`,
+          expired: "The guest's bank released it before check-out."
+        }[r.hold_status] || (r.stripe_payment_method_id ? `$${dh.amount} hold will be placed on ${pretty(r.check_in)}.` : (r.stripe_session_id ? "No saved card, so no hold." : "Paid offline, so no hold."));
+        add("Damage hold", holdText);
+      }
       card.append(dl);
       if (r.payment_url && r.status === "approved") {
         const code = el("code", { textContent: r.payment_url });
@@ -78,6 +90,7 @@
           b.disabled = true;
           try {
             const out = await api(`/api/admin/requests/${r.id}/${action}`, "POST");
+            if (action === "approve" && out.termsCheckbox === false) setTimeout(() => toast("The payment page went out without the \"I agree\" checkbox. Add your terms link in Stripe (see Setup).", true), 2500);
             toast({ approve: out.paymentUrl ? (out.emailed ? "Approved. The guest was emailed a payment link." : "Approved. Copy the payment link and send it to the guest.") : "Approved. Collect payment, then mark it paid.", decline: "Declined.", confirm: "Marked as paid. The dates are blocked.", cancel: out.note ? "Cancelled. " + out.note : "Cancelled." }[action]);
             load();
           } catch (e) { toast(e.message, true); b.disabled = false; }
@@ -110,6 +123,23 @@
         });
         acts.append(b);
         if (r.arrival_sent_at) card.append(el("p", { className: "small muted", textContent: `Check-in message emailed ${new Date(r.arrival_sent_at).toLocaleString()}.` }));
+      }
+      if (r.hold_status === "held") {
+        const amt = el("input", { type: "text", inputMode: "decimal", placeholder: "Amount, e.g. 50", style: "max-width:140px" });
+        const why = el("input", { type: "text", placeholder: "Reason, e.g. 2 missing wristbands", maxLength: 200 });
+        const charge = el("button", { className: "btn ghost", type: "button", textContent: "Charge from hold", style: "width:auto" });
+        const release = el("button", { className: "btn ghost", type: "button", textContent: "Release hold now", style: "width:auto" });
+        const run = async (b, action, payload, confirmText) => {
+          if (b.dataset.armed !== "1") { const t = b.textContent; b.dataset.armed = "1"; b.textContent = confirmText; setTimeout(() => { b.dataset.armed = ""; b.textContent = t; }, 4000); return; }
+          b.disabled = true;
+          try { const out = await api(`/api/admin/requests/${r.id}/hold-${action}`, "POST", payload); toast(out.message); load(); }
+          catch (e) { toast(e.message, true); b.disabled = false; b.dataset.armed = ""; }
+        };
+        charge.addEventListener("click", () => run(charge, "charge", { amount: amt.value, reason: why.value }, `Tap again to charge $${amt.value || "0"}`));
+        release.addEventListener("click", () => run(release, "release", {}, "Tap again to release"));
+        card.append(el("div", { className: "field", style: "margin-top:8px" },
+          el("label", { textContent: "Damage hold" }),
+          el("div", { style: "display:flex;gap:8px;flex-wrap:wrap;align-items:center" }, amt, why, charge, release)));
       }
       if (r.status === "confirmed") { btn("Cancel booking", "cancel", true, "Tap again to cancel"); }
       if (acts.children.length) card.append(acts);
@@ -161,6 +191,7 @@
     const s = data.setup;
     if (s.calendarExportUrl) $("exportUrl").textContent = s.calendarExportUrl;
     $("webhookUrl").textContent = s.webhookUrl;
+    $("termsUrl").textContent = s.termsUrl;
     const items = [
       [s.airbnbFeed, "Airbnb calendar link added (AIRBNB_ICAL_URL secret)"],
       [s.vrboFeed, "VRBO calendar link added (VRBO_ICAL_URL secret)"],

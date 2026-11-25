@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Privacy Policy · The Teal Seashell</title>
+<meta name="description" content="How The Teal Seashell collects, uses and protects your information when you book a stay.">
+<link rel="icon" href="/img/favicon.png" type="image/png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT,WONK@9..144,500..700,100,0..1&family=Instrument+Sans:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+<header class="top">
+  <div class="wrap">
+    <a class="wordmark" href="/"><picture><source srcset="/img/mark-dark.webp" media="(prefers-color-scheme: dark)"><img src="/img/mark.webp" alt="" width="42" height="34"></picture>The Teal Seashell</a>
+    <nav aria-label="Site"><a href="/#stay">The studio</a><a href="/about">About</a><a href="/photos">Photos</a><a href="/things-to-do">Things to do</a><a href="/#rates">Rates</a><a href="/#book">Book</a></nav>
+  </div>
+</header>
+
+<main class="wrap about-page legal">
+  <div class="page-head">
+    <h1>Privacy Policy</h1>
+    <p class="muted">Last updated November 24, 2026</p>
+  </div>
+  <div class="page-body">
+    <p>The Teal Seashell is a vacation rental run by its owners. This page explains what we collect when you use this website or book a stay, and what we do with it. We keep it simple: we collect what we need to run your booking and nothing else.</p>
+
+    <h2>What we collect</h2>
+    <ul>
+      <li><b>Booking details</b> you give us: your name, email, phone number (if you add one), the dates, the number of guests and any message you send.</li>
+      <li><b>Payment details.</b> Payments are handled by Stripe. We never see or store your full card number. Stripe saves your card on its secure systems so we can place the <a href="/terms#damage-hold">refundable damage hold</a> on your check-in day. We can see the card brand, its last four digits and your payment history with us.</li>
+      <li><b>Stay records,</b> such as door codes, check-in messages and notes about damage holds.</li>
+      <li><b>Technical data.</b> Our hosting provider keeps standard server logs, such as IP addresses and pages visited, for security and to keep the site running. We don't use advertising or tracking cookies. The only cookie we set is a sign-in cookie for the owner's dashboard.</li>
+    </ul>
+
+    <h2>How we use it</h2>
+    <ul>
+      <li>To review your request, take payment, confirm your stay and send check-in instructions.</li>
+      <li>To contact you about your stay and answer your questions.</li>
+      <li>To place, release or, if needed, charge the damage hold under our <a href="/terms">rental terms</a>.</li>
+      <li>To keep the records Florida, Bay County and Panama City Beach tax laws require, and for our own bookkeeping.</li>
+    </ul>
+    <p>We don't sell or rent your information, and we don't send marketing emails.</p>
+
+    <h2>Who we share it with</h2>
+    <ul>
+      <li><b>Stripe</b>, to process payments and damage holds (<a href="https://stripe.com/privacy" rel="noopener">Stripe's privacy policy</a>).</li>
+      <li><b>Cloudflare</b>, which hosts this website and its database.</li>
+      <li><b>Resend</b> and <b>Google</b>, which deliver our emails.</li>
+      <li><b>Fontainebleau Terrace management</b>, when the building needs guest names for registration, parking or security.</li>
+      <li>Tax authorities, police or courts, when the law requires it.</li>
+    </ul>
+
+    <h2>How long we keep it</h2>
+    <p>We keep booking and payment records for as long as tax and accounting laws require, usually up to 7 years. Door codes and messages that aren't needed after your stay are deleted when we no longer need them.</p>
+
+    <h2>Your choices</h2>
+    <p>You can ask us what we have about you, ask us to correct it, or ask us to delete anything we're not required to keep. Just email us. Booking requests are for adults; we don't knowingly collect information from children under 13.</p>
+
+    <h2>Changes</h2>
+    <p>If we change this policy, we'll update this page and the date at the top.</p>
+
+    <h2>Contact</h2>
+    <p>Email <a href="mailto:renae@thetealseashell.com">renae@thetealseashell.com</a>.</p>
+  </div>
+</main>
+
+<footer><div class="wrap"><span>The Teal Seashell · Fontainebleau Terrace, Panama City Beach, FL</span><span><a href="mailto:renae@thetealseashell.com">renae@thetealseashell.com</a></span><span><a href="/terms">House rules &amp; terms</a> · <a href="/privacy">Privacy</a></span><a class="owner-link" href="/admin.html" rel="nofollow">Owner login</a></div></footer>
+<script>
+// Keep amounts and times in step with src/config.js
+fetch("/api/property").then((r) => r.json()).then((d) => {
+  const p = d.property, h = d.pricing.damageHold, set = (k, v) => document.querySelectorAll(`[data-fill="${k}"]`).forEach((e) => (e.textContent = v));
+  set("in", p.checkInTime); set("out", p.checkOutTime); set("guests", p.maxGuests);
+  if (h) { set("hold", "$" + h.amount); set("release", h.releaseDaysAfterCheckout); }
+}).catch(() => {});
+</script>
+</body>
+</html>

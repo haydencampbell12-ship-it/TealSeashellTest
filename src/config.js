@@ -13,7 +13,7 @@ export const PROPERTY = {
   // Links shown as "also available on" — fill in your listing URLs
   airbnbUrl: "",
   vrboUrl: "",
-  contactEmail: "",
+  contactEmail: "renae@thetealseashell.com",
   contactPhone: "",
   // Check-out checklist. Shown on the website and reused in guest messages.
   checkoutSteps: [
@@ -79,9 +79,15 @@ export const PRICING = {
   monthly: { months: [11, 12, 1, 2], minNights: 28, perMonth: 1950 },
   weeklyDiscount: { minNights: 7, percent: 10 },
   cleaningFee: 125,
-  // Florida sales tax 7% + Bay County tourist tax 5% + Panama City Beach 1%.
-  // Confirm with the Florida DOR and Bay County before going live.
-  taxRate: 0.13,
+  // Lodging taxes on direct bookings (charged on lodging + cleaning fee).
+  // Each is filed separately: Florida sales tax (6% state + 1% Bay County surtax)
+  // with the Florida Department of Revenue, the tourist development tax with the
+  // Bay County Tax Collector, and the business tax with the City of Panama City Beach.
+  taxes: [
+    { key: "fl_sales", label: "Florida sales tax (7%)", rate: 0.07 },
+    { key: "bay_tdt", label: "Bay County tourist development tax (5%)", rate: 0.05 },
+    { key: "pcb_btr", label: "Panama City Beach business tax (1%)", rate: 0.01 }
+  ],
   maxNights: 120,
   bookingWindowDays: 540,
   // Used only for the "you save vs. Airbnb" estimate shown to guests
@@ -89,3 +95,13 @@ export const PRICING = {
   // Hours an approved guest has to pay before the dates are released (max 23 for Stripe)
   holdHours: 23
 };
+
+// Combined lodging tax rate, e.g. 0.13
+export const TAX_RATE = PRICING.taxes.reduce((a, t) => a + t.rate, 0);
+
+// Refundable damage hold. On check-in day the site places a hold for this amount
+// on the card the guest paid with, then releases it automatically a few days after
+// check-out unless you charge part or all of it from the dashboard.
+// Card holds last about 7 days, so on stays longer than about 5 nights the bank
+// may release it before check-out.
+export const DAMAGE_HOLD = { amount: 250, releaseDaysAfterCheckout: 2 };

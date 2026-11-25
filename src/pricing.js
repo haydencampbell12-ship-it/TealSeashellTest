@@ -111,7 +111,7 @@ export function buildQuote(checkIn, checkOut, guests) {
   let lodgingCents;
   if (isMonthly) {
     lodgingCents = cents((m.perMonth / 30) * nights);
-    lines.push({ label: `Snowbird monthly rate, ${nights} nights`, cents: lodgingCents });
+    lines.push({ label: `Snowbird monthly rate, ${nights} nights`, cents: lodgingCents, kind: "lodging" });
   } else {
     // Group nights with the same rate and reason for a readable breakdown
     const groups = [];
@@ -125,22 +125,27 @@ export function buildQuote(checkIn, checkOut, guests) {
     for (const gp of groups) {
       const c = cents(gp.price * gp.count);
       lodgingCents += c;
-      lines.push({ label: `$${gp.price} × ${gp.count} night${gp.count > 1 ? "s" : ""} (${gp.label})`, cents: c });
+      lines.push({ label: `$${gp.price} × ${gp.count} night${gp.count > 1 ? "s" : ""} (${gp.label})`, cents: c, kind: "lodging" });
     }
     if (nights >= PRICING.weeklyDiscount.minNights) {
       // The discount never takes the average night below the floor
       const maxOff = lodgingCents - cents(PRICING.nightlyFloor * nights);
       const d = Math.min(Math.round(lodgingCents * PRICING.weeklyDiscount.percent / 100), Math.max(0, maxOff));
       if (d > 0) {
-        lines.push({ label: d < Math.round(lodgingCents * PRICING.weeklyDiscount.percent / 100) ? "Weekly discount" : `Weekly discount (${PRICING.weeklyDiscount.percent}%)`, cents: -d });
+        lines.push({ label: d < Math.round(lodgingCents * PRICING.weeklyDiscount.percent / 100) ? "Weekly discount" : `Weekly discount (${PRICING.weeklyDiscount.percent}%)`, cents: -d, kind: "discount" });
         lodgingCents -= d;
       }
     }
   }
   const cleaningCents = cents(PRICING.cleaningFee);
-  lines.push({ label: "Cleaning fee", cents: cleaningCents });
-  const taxCents = Math.round((lodgingCents + cleaningCents) * PRICING.taxRate);
-  lines.push({ label: "Florida & Bay County lodging taxes", cents: taxCents });
+  lines.push({ label: "Cleaning fee", cents: cleaningCents, kind: "cleaning" });
+  // Each tax is rounded on its own so the receipt and the tax returns match line by line
+  let taxCents = 0;
+  for (const t of PRICING.taxes) {
+    const c = Math.round((lodgingCents + cleaningCents) * t.rate);
+    taxCents += c;
+    lines.push({ label: t.label, cents: c, kind: "tax", taxKey: t.key });
+  }
   const totalCents = lodgingCents + cleaningCents + taxCents;
   const airbnbEstimateCents = Math.round(totalCents + (lodgingCents + cleaningCents) * PRICING.airbnbGuestFeeEstimate);
 

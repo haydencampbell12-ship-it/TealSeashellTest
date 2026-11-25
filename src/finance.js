@@ -61,7 +61,8 @@ const payoutMonth = (checkIn) => monthKey(addDays(checkIn, 1));
 export function looksLikeBooking(summary) {
   return !/not available|unavailable|blocked|closed/i.test(summary || "");
 }
-const taxFromQuote = (q) => (q.lines || []).find((l) => /tax/i.test(l.label))?.cents || 0;
+// Sum every tax line (older quotes have one combined line, newer ones have three)
+const taxFromQuote = (q) => (q.lines || []).filter((l) => l.kind === "tax" || (!l.kind && /tax/i.test(l.label))).reduce((a, l) => a + l.cents, 0);
 
 // Split a host payout into cleaning, taxes, management and what's left for you.
 // The management fee only applies to stays that paid out while the studio had a manager.

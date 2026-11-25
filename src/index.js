@@ -1,9 +1,10 @@
-import { PROPERTY, PRICING } from "./config.js";
+import { PROPERTY, PRICING, TAX_RATE, DAMAGE_HOLD } from "./config.js";
 import { buildQuote, nightRate, upcomingHolidays } from "./pricing.js";
 import { syncFeeds, buildICS } from "./ical.js";
 import { addDays, eachNight, overlaps, todayLocal, isISODate } from "./dates.js";
 import { isAdmin, adminAccounts, makeSession, clearSession, newId, safeEqual, verifyStripe, hmacHex } from "./crypto.js";
-import { createCheckout, expireCheckout } from "./stripe.js";
+import { createCheckout, expireCheckout, savedCard } from "./stripe.js";
+import { runHolds, holdAction } from "./holds.js";
 import { sendEmail, money } from "./email.js";
 import { sendPush, shortDate, requestPush, paidPush } from "./notify.js";
 import { getArrival, saveArrival, render as renderArrival, sendArrivalMessages, emailReady, PLACEHOLDERS, getDoorCode, saveDoorCode, needsDoorCode } from "./arrival.js";
@@ -50,7 +51,7 @@ async function apiProperty(env) {
     pricing: {
       seasons: PRICING.seasons, holidays: upcomingHolidays(todayLocal()), weekend: PRICING.weekend,
       nightlyFloor: PRICING.nightlyFloor, monthly: PRICING.monthly, weeklyDiscount: PRICING.weeklyDiscount,
-      cleaningFee: PRICING.cleaningFee, taxRate: PRICING.taxRate, maxNights: PRICING.maxNights
+      cleaningFee: PRICING.cleaningFee, taxRate: TAX_RATE, taxes: PRICING.taxes, maxNights: PRICING.maxNights, damageHold: DAMAGE_HOLD
     }
   });
 }
@@ -145,12 +146,18 @@ async function stripeWebhook(request, env) {
 
   if ((event.type === "checkout.session.completed" || event.type === "checkout.session.async_payment_succeeded") && session.payment_status === "paid" && req.status !== "confirmed") {
     await env.DB.prepare("UPDATE requests SET status = 'confirmed', updated_at = ? WHERE id = ?").bind(nowISO(), id).run();
+    // Keep the saved card for the damage hold, and when the guest agreed to the terms
+    const card = await savedCard(env, session).catch((e) => { console.error("saved card", e); return {}; });
+    const agreed = session.consent?.terms_of_service === "accepted" ? nowISO() : null;
+    await env.DB.prepare("UPDATE requests SET stripe_customer_id = ?, stripe_payment_method_id = ?, terms_accepted_at = COALESCE(?, terms_accepted_at) WHERE id = ?")
+      .bind(card.customer || null, card.paymentMethod || null, agreed, id).run();
     const conflict = !(await isAvailable(env, req.check_in, req.check_out, { excludeRequestId: id }));
     await Promise.all([
       sendEmail(env, req.email, `You're booked at ${PROPERTY.name}!`, [
         `Hi ${req.name},`,
         `Your payment of ${money(req.total_cents)} went through and your stay from ${req.check_in} to ${req.check_out} is confirmed.`,
         `Check-in is ${PROPERTY.checkInTime} and check-out is ${PROPERTY.checkOutTime}. We'll send arrival details a few days before your trip.`,
+        `On check-in day we'll place a refundable ${money(DAMAGE_HOLD.amount * 100)} damage hold on the card you paid with. It's released ${DAMAGE_HOLD.releaseDaysAfterCheckout} days after check-out unless something is damaged or missing. House rules: ${(env.SITE_URL || "").replace(/\/$/, "")}/terms.html`,
         `— ${PROPERTY.name}`
       ]),
       sendEmail(env, env.OWNER_EMAIL, `${conflict ? "CHECK CALENDAR: " : ""}Paid: ${req.name}, ${req.check_in} to ${req.check_out}`, [
@@ -226,7 +233,9 @@ async function adminOverview(env, url, adminUser) {
       email: !!(env.RESEND_API_KEY && env.FROM_EMAIL && env.OWNER_EMAIL),
       push: !!env.NTFY_TOPIC,
       emailForArrival: emailReady(env),
-      webhookUrl: `${site}/api/stripe/webhook`
+      webhookUrl: `${site}/api/stripe/webhook`,
+      termsUrl: `${site}/terms.html`,
+      damageHold: DAMAGE_HOLD
     }
   });
 }
@@ -258,7 +267,7 @@ async function adminRequestAction(request, env, id, action) {
       "If payment isn't completed in time, the dates are released.",
       `— ${PROPERTY.name}`
     ]);
-    return json({ ok: true, paymentUrl: session?.url || null, emailed: !!emailed.ok });
+    return json({ ok: true, paymentUrl: session?.url || null, emailed: !!emailed.ok, termsCheckbox: session ? session.termsCheckbox : null });
   }
   if (action === "decline") {
     if (req.status !== "pending") return err(`Only pending requests can be declined.`);
@@ -390,6 +399,11 @@ export default {
           const r = await saveDoorCode(env, mm[1], ((await readJSON(request)) || {}).code);
           return r.ok ? json(r) : err(r.error);
         }
+        mm = /^\/api\/admin\/requests\/([\w-]+)\/hold-(release|charge)$/.exec(p);
+        if (mm && m === "POST") {
+          const r = await holdAction(env, mm[1], mm[2], await readJSON(request));
+          return r.ok ? json(r) : err(r.error, r.status || 400);
+        }
         mm = /^\/api\/admin\/requests\/([\w-]+)\/(approve|decline|confirm|cancel)$/.exec(p);
         if (mm && m === "POST") return adminRequestAction(request, env, mm[1], mm[2]);
       }
@@ -410,6 +424,7 @@ export default {
     ctx.waitUntil((async () => {
       await syncFeeds(env);
       await sendArrivalMessages(env).catch((e) => console.error("arrival messages", e));
+      await runHolds(env).catch((e) => console.error("damage holds", e));
       // release dates from approved requests that were never paid
       await env.DB.prepare("UPDATE requests SET status = 'expired', updated_at = ? WHERE status = 'approved' AND hold_expires_at < ?")
         .bind(nowISO(), nowISO()).run();
